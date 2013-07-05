@@ -15,14 +15,17 @@
   "bugs": {
     "url": "https://github.com/CyCoreSystems/node-asterisk-ami/issues"
   },
-  "licenses": [
-    {
-      "type": "GPLv2",
-      "url": "http://www.gnu.org/licenses/gpl-2.0.html"
-    }
+  "license": "BSD",
+  "keywords": [
+     "asterisk",
+     "ami",
+     "asyncagi"
   ],
   "engines": {
     "node": "~0.10.5"
+  },
+  "scripts": {
+     "test": "grunt test"
   },
   "dependencies": {
     "underscore": "~1.4.4",
