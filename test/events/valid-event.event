@@ -1,0 +1,5 @@
+Event: HangupRequest
+Privilege: call,all
+Channel: SIP/testme-00000002
+Uniqueid: 1372948046.2
+

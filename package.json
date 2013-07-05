@@ -1,0 +1,41 @@
+{
+  "name": "node-asterisk-ami",
+  "description": "Asterisk AMI library for NodeJS",
+  "version": "0.0.0",
+  "homepage": "https://github.com/CyCoreSystems/node-asterisk-ami",
+  "author": {
+    "name": "Seán C. McCord",
+    "email": "ulexus@gmail.com",
+    "url": "http://www.cycoresys.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/CyCoreSystems/node-asterisk-ami.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CyCoreSystems/node-asterisk-ami/issues"
+  },
+  "licenses": [
+    {
+      "type": "GPLv2",
+      "url": "http://www.gnu.org/licenses/gpl-2.0.html"
+    }
+  ],
+  "engines": {
+    "node": "~0.10.5"
+  },
+  "dependencies": {
+    "underscore": "~1.4.4",
+    "node-uuid": "~1.4.0",
+    "bunyan": "~0.21.4"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-coffeelint": "0.0.7",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-clean": "~0.4",
+    "grunt-contrib-nodeunit": "~0.2.0",
+    "nodeunit": "~0.8.1",
+    "coffee-script": "~1.6.3"
+  }
+}

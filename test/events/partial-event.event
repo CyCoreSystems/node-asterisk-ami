@@ -1,0 +1,3 @@
+Event: HangupRequest
+Privilege: call,all
+Channel: SIP/testme-00000002
