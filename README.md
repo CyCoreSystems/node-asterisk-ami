@@ -35,9 +35,9 @@ var amiconn = new AMI.Connection({
 });
 amiconn.on('ready',function(){
    amiconn.originate({
-      Channel: 'SIP/testme'
-      Application: 'AGI'
-      Data: 'agi:async'
+      Channel: 'SIP/testme',
+      Application: 'AGI',
+      Data: 'agi:async',
       complete: function(message){
          if(message.Response == 'Success') {
             console.log("Call is connected");
