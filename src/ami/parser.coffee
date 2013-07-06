@@ -86,9 +86,17 @@ Parser.prototype._onMessage = (lines)->
   @emit 'ami:message',message
   # Certain messages should have special events
   if message.Response
+    # Message was an acknowledgement of an AMI command
     @emit 'ami:response',message
   if message.Event
+    # Message was an Event
     @emit 'ami:event',message
+    if message.Event is 'AsyncAGI'
+      # Message was a response to an AsyncAGI call
+      @emit 'ami:agi',message
+    if message.Event is 'OriginateResponse'
+      # Message was a response to an Originate call
+      @emit 'ami:originate',message
   return
 
 Parser.prototype.parse = Parser.prototype.toObj = (lines)->

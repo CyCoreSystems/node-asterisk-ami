@@ -43,6 +43,11 @@ Connection = (options,cb)->
     
   @loggedin = false
 
+  # Create our command response callback queues
+  @actionQueue = []
+  @agiQueue = []
+  @originateQueue = []
+
   @socket = net.connect {
     port: @options.port
     host: @options.host
@@ -180,14 +185,53 @@ Connection.prototype.login = (cb)->
 Connection.prototype._onConnect = ->
   @parser = new Parser @socket
   @parser.on 'ami:message',@_onMessage.bind(this)
+  @parser.on 'ami:response',@_onResponse.bind(this)
+  @parser.on 'ami:agi',@_onAgi.bind(this)
+  @parser.on 'ami:originate',@_onOriginate.bind(this)
   @parser.on 'error',@_onError.bind(this)
   @emit 'connect'
 
 Connection.prototype._onMessage = (message)->
-  # Always emit the message itself
-  @emit 'ami:message',message
-  # Handle special message types
-  if (message.Event is 'Response') and message.ActionID
-    @emit 'ami:response',message
-  if (message.Event is 'AsyncAGI') and message.CommandID
-    @emit 'ami:agi',message
+  # Reemit to self
+  @emit 'message',message
+
+Connection.prototype._onResponse = (message)->
+  @emit 'response',message
+  if not message.ActionID
+    return
+  if message.Event is 'OriginateResponse'
+    # Ignore OriginateResponses here; they
+    # are handled separately.  Reemitting here
+    # could potentially cause glare, if the
+    # OriginateResponse is handled before the
+    # acknowledgement callback is removed
+    # from the action queue, thus calling
+    # the acknowledgement callback twice.
+    return
+  cb = @actionQueue[message.ActionID]
+  delete @actionQueue[message.ActionID]
+  if typeof cb is 'function'
+    cb message
+  return
+
+Connection.prototype._onAgi = (message)->
+  @emit 'agi',message
+  if not message.CommandID
+    return
+  cb = @agiQueue[message.CommandID]
+  delete @agiQueue[message.CommandID]
+  if typeof cb is 'function'
+    cb message
+  return
+
+Connection.prototype._onOriginate = (message)->
+  @emit 'originate',message
+  if not message.ActionID
+    return
+  cb = @originateQueue[message.ActionID]
+  delete @originateQueue[message.ActionID]
+  if typeof cb is 'function'
+    cb message
+  return
+
+

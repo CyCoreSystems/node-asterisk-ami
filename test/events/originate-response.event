@@ -1,0 +1,11 @@
+Event: OriginateResponse
+Privilege: call,all
+Response: Success
+Channel: SIP/testme-00000002
+Context: 
+Exten: 
+Reason: 4
+Uniqueid: 1372948046.2
+CallerIDNum: <unknown>
+CallerIDName: <unknown>
+
