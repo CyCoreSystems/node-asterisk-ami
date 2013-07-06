@@ -15,10 +15,7 @@ Connection = (options,cb)->
     username: ''
     password: ''
     debug: false
-    reconnect: false
-    reconnect_after: 3000
     events: true
-    raw: false
   },options
 
   # If the passed a callback, bind it to ready_cb
@@ -183,10 +180,16 @@ Connection.prototype.login = (cb)->
   @action req,cb
 
 Connection.prototype._onConnect = ->
+  self = this
   @parser = new Parser @socket
   @parser.on 'ami:message',@_onMessage.bind(this)
   @parser.on 'ami:response',@_onResponse.bind(this)
-  @parser.on 'ami:agi',@_onAgi.bind(this)
+  @parser.on 'ami:event',@_onEvent.bind(this)
+  @parser.on 'ami:agi:exec',@_onAgiExec.bind(this)
+  @parser.on 'ami:agi:session:start',(message)->
+    return self.emit 'agi:start',message
+  @parser.on 'ami:agi:session:end',(message)->
+    return self.emit 'agi:end',message
   @parser.on 'ami:originate',@_onOriginate.bind(this)
   @parser.on 'error',@_onError.bind(this)
   @emit 'connect'
@@ -196,9 +199,9 @@ Connection.prototype._onMessage = (message)->
   @emit 'message',message
 
 Connection.prototype._onResponse = (message)->
-  @emit 'response',message
   if not message.ActionID
     return
+  @emit "response:#{message.ActionID}",message
   if message.Event is 'OriginateResponse'
     # Ignore OriginateResponses here; they
     # are handled separately.  Reemitting here
@@ -214,10 +217,15 @@ Connection.prototype._onResponse = (message)->
     cb message
   return
 
-Connection.prototype._onAgi = (message)->
-  @emit 'agi',message
+Connection.prototype._onEvent = (message)->
+  if message.ActionID
+    @emit "event:#{message.ActionID}",message
+  return
+
+Connection.prototype._onAgiExec = (message)->
   if not message.CommandID
     return
+  @emit "agi:exec:#{message.CommandID}",message
   cb = @agiQueue[message.CommandID]
   delete @agiQueue[message.CommandID]
   if typeof cb is 'function'
@@ -225,9 +233,9 @@ Connection.prototype._onAgi = (message)->
   return
 
 Connection.prototype._onOriginate = (message)->
-  @emit 'originate',message
   if not message.ActionID
     return
+  @emit "originate:#{message.ActionID}",message
   cb = @originateQueue[message.ActionID]
   delete @originateQueue[message.ActionID]
   if typeof cb is 'function'

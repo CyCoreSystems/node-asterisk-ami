@@ -92,12 +92,50 @@ Parser.prototype._onMessage = (lines)->
     # Message was an Event
     @emit 'ami:event',message
     if message.Event is 'AsyncAGI'
-      # Message was a response to an AsyncAGI call
-      @emit 'ami:agi',message
+      if message.SubEvent is 'Start'
+        # This is the start of an AGI command (or session)
+        @emit 'ami:agi:start',message
+        # Pass to _onAGIStart for further parsing
+        @_onAGIStart message
+      if message.SubEvent is 'End'
+        # This is the end of an AGI command (or session)
+        @emit 'ami:agi:end',message
+        # Pass to _onAGIEnd for further parsing
+        @_onAGIEnd message
+      if message.SubEvent is 'Exec'
+        # Message was a response to an AsyncAGI call
+        @emit 'ami:agi:exec',message
     if message.Event is 'OriginateResponse'
       # Message was a response to an Originate call
       @emit 'ami:originate',message
   return
+
+Parser.prototype._onAGIStart = (message)->
+  if message.Command
+    # Start of AsyncAGI command execution
+    # NOTE: the CommandId here does not match
+    # the CommandID passed with the AGI command;
+    # therefore, it is unclear to the author
+    # the it is at all useful to reemit this
+    # event.  This is implemented for completeness
+    # only.
+    return @emit 'ami:agi:command:start',message
+  # Start of AsyncAGI session
+  message.Env = @parseEnv message.Env
+  return @emit 'ami:agi:session:start',message
+
+Parser.prototype._onAGIEnd = (message)->
+  if message.Command
+    # End of AsyncAGI command execution
+    # NOTE: the CommandId here does not match
+    # the CommandID passed with the AGI command;
+    # therefore, it is unclear to the author
+    # the it is at all useful to reemit this
+    # event.  This is implemented for completeness
+    # only.
+    return @emit 'ami:agi:command:end',message
+  # End of AsyncAGI session
+  return @emit 'ami:agi:session:end',message
 
 Parser.prototype.parse = Parser.prototype.toObj = (lines)->
   msg = {}
@@ -137,6 +175,18 @@ Parser.prototype.toAMI = (obj)->
     return
   return lines.join(@separator).concat @separator
 
+Parser.prototype.parseEnv = (env)->
+  # Environment variable string is
+  # URI-encoded.  Split into lines
+  # then key-value pairs.
+  # Return as an object whose properties
+  # are those key-value pairs
+  ret = {}
+  lines = env.split '%0A'
+  _.each lines,(line)->
+    pieces = line.split '%3A%20'
+    ret[pieces[0]] = pieces[1]
+  return ret
 
 module.exports =
   Parser: Parser
