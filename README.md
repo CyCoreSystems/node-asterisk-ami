@@ -52,7 +52,7 @@ amiconn.on('ready',function(){
 ```
 
 AMI.Connection `AMI.Connection(options,[callback])`
-===================================================
+-----
 
 Available `options`:
 * host: hostname or IP address of Asterisk server (default: 'localhost')
@@ -64,17 +64,15 @@ Available `options`:
 
 If provided, the callback will be called when Asterisk reports the connection to be ready
 
-Methods:
+### Methods
 
-send `AMI.Connection.send(command)`
------------------------------------
+#### send `AMI.Connection.send(command)`
 
 Low-level method to send AMI commands directly.  If `command` is a string, no processing will be performed before sending the command to Asterisk.  If `command` is an object, it will be parsed into an AMI-compatable Action before sending.
 
 Note that using `send` directly will bypass all tracking and queuing.  It is up to you to add ActionIDs and CommandIDs as appropriate.
 
-action `AMI.Connection.action(action,[args],[cb])`
-------
+#### action `AMI.Connection.action(action,[args],[cb])`
 
 Send an arbitrary AMI Action to Asterisk.
 
@@ -86,8 +84,7 @@ Send an arbitrary AMI Action to Asterisk.
 
 Note that this method will not automatically track Originate and AGI execution.  Please use the `originate` or `agi` methods for that.
 
-originate `AMI.Connection.originate(args,[cb])`
----------
+#### originate `AMI.Connection.originate(args,[cb])`
 
 Send and track an `Originate` AMI action to Asterisk.
 
@@ -95,8 +92,7 @@ Available additional options (include in the `args` object):
 * sync:  (boolean, false) Execute `cb` only on *completion* of the Originate command, rather than acceptance
 * complete: (function) Executed on *completion* of the Originate command
 
-agi `AMI.Connection.agi(command,[args],[cb])`
------
+#### agi `AMI.Connection.agi(command,[args],[cb])`
 
 Send and track an AsyncAGI command to Asterisk.
 
@@ -107,7 +103,7 @@ Send and track an AsyncAGI command to Asterisk.
 `cb`, if present, will be called when Asterisk acknowledges receipt of the Action.
 
 Events
-======
+------
 
 Each of the events are passed with the full, objectified AMI message
 
