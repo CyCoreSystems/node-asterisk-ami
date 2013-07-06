@@ -1,0 +1,7 @@
+Event: AsyncAGI
+Privilege: agi,all
+SubEvent: Exec
+Channel: SIP/testme-00000006
+CommandID: googlegoop
+Result: 200%20result%3D1%0A
+

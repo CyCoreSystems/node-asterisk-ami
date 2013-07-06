@@ -1,0 +1,9 @@
+Event: AGIExec
+Privilege: agi,all
+SubEvent: End
+Channel: SIP/testme-00000006
+CommandId: 1151034424
+Command: verbose "Testing me"
+ResultCode: 200
+Result: Success
+

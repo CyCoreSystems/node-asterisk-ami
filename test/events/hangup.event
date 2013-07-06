@@ -1,0 +1,12 @@
+Event: Hangup
+Privilege: call,all
+Channel: SIP/testme-00000006
+Uniqueid: 1373127691.6
+CallerIDNum: <unknown>
+CallerIDName: <unknown>
+ConnectedLineNum: <unknown>
+ConnectedLineName: <unknown>
+AccountCode: 
+Cause: 16
+Cause-txt: Normal Clearing
+

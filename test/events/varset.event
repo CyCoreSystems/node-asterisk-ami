@@ -1,0 +1,7 @@
+Event: VarSet
+Privilege: dialplan,all
+Channel: SIP/testme-00000006
+Variable: AGISTATUS
+Value: HANGUP
+Uniqueid: 1373127691.6
+

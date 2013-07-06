@@ -1,0 +1,7 @@
+Event: AGIExec
+Privilege: agi,all
+SubEvent: Start
+Channel: SIP/testme-00000006
+CommandId: 1151034424
+Command: verbose "Testing me"
+
