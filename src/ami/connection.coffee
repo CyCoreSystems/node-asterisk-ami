@@ -80,7 +80,7 @@ Connection.prototype.send = (command)->
 # is a wrapper to add the ActionID header
 # and bind the callback to its response
 ###
-Connection.prototype.action = (action,args,cb)->
+Connection.prototype.action = Connection.prototype.Action = (action,args,cb)->
   if typeof args is 'function'
     cb = args
     args = null
@@ -112,7 +112,7 @@ Connection.prototype.action = (action,args,cb)->
 # pass it as the 'complete' property of
 # the args parameter.
 ###
-Connection.prototype.agi = (command,args,cb)->
+Connection.prototype.agi = Connection.prototype.AGI = (command,args,cb)->
   if typeof args is 'function'
     cb = args
     args = null
@@ -151,7 +151,7 @@ Connection.prototype.agi = (command,args,cb)->
 # You may pass the 'complete' property to provide
 # a callback on completion of the Originate action.
 ###
-Connection.prototype.originate = (args,cb)->
+Connection.prototype.originate = Connection.prototype.Originate = (args,cb)->
   if typeof args is 'function'
     cb = args
     args = null
@@ -172,12 +172,22 @@ Connection.prototype.originate = (args,cb)->
   @send opts
   return
 
-Connection.prototype.login = (cb)->
+Connection.prototype.login = Connection.prototype.Login = (cb)->
   req =
     Action: 'Login'
     Username: @options.username
     Secret: @options.password
   @action req,cb
+
+Connection.prototype.getVar = Connection.prototype.GetVar = (channel,key,cb)->
+  req =
+    Action: 'GetVar'
+    Channel: channel
+    Variable: key
+  @action req,(mesg)->
+    if mesg.Response isnt 'Success'
+      return cb? "Failed to get variable",mesg
+    return cb? null,mesg.Value
 
 Connection.prototype._onConnect = ->
   self = this
