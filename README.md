@@ -102,6 +102,11 @@ Send and track an AsyncAGI command to Asterisk.
 
 `cb`, if present, will be called when Asterisk acknowledges receipt of the Action.
 
+#### getVar `AMI.Connection.getVar(channel,variable,cb)`
+
+Get the value of the given variable on the given channel.  Calls `cb(err,value)`.
+
+
 Events
 ------
 
