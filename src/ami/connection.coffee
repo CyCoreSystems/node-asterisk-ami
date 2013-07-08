@@ -30,8 +30,8 @@ Connection = (options,cb)->
     @options.events = 'off'
 
   # Use secret instead of password, if provided
-  if opts.secret?.length
-    @options.password = opts.secret
+  if options.secret?.length
+    @options.password = options.secret
 
   # Bind our logger
   if not options.logger
