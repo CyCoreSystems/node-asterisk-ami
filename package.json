@@ -1,7 +1,7 @@
 {
   "name": "node-asterisk-ami",
   "description": "Asterisk AMI library for NodeJS",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/CyCoreSystems/node-asterisk-ami",
   "author": {
     "name": "Seán C. McCord",
@@ -24,6 +24,7 @@
   "engines": {
     "node": "~0.10.5"
   },
+  "main": "lib/",
   "scripts": {
      "test": "grunt test"
   },
