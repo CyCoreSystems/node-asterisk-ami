@@ -228,7 +228,9 @@ Connection.prototype._onResponse = (message)->
   return
 
 Connection.prototype._onEvent = (message)->
-  if message.ActionID
+  if message?.Event
+    @emit "event:#{message.Event}",message
+  if message?.ActionID
     @emit "event:#{message.ActionID}",message
   return
 
@@ -252,4 +254,5 @@ Connection.prototype._onOriginate = (message)->
     cb message
   return
 
-
+module.exports =
+  Connection: Connection

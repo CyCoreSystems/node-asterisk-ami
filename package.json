@@ -1,5 +1,5 @@
 {
-  "name": "node-asterisk-ami",
+  "name": "asterisk-ami",
   "description": "Asterisk AMI library for NodeJS",
   "version": "0.0.1",
   "homepage": "https://github.com/CyCoreSystems/node-asterisk-ami",
