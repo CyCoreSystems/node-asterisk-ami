@@ -204,6 +204,10 @@ Connection.prototype._onConnect = ->
   @parser.on 'error',@_onError.bind(this)
   @emit 'connect'
 
+Connection.prototype._onEnd = ->
+  @log.info "Connection ended"
+  return @emit 'end'
+
 Connection.prototype._onError = (message)->
   @log.error message
   return @emit 'error',message
