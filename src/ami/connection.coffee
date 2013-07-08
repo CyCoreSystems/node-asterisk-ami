@@ -50,13 +50,6 @@ Connection = (options,cb)->
     host: @options.host
   },@_onConnect.bind(this)
 
-  @socket.on 'ready',->
-    self.login (err)->
-      if err?
-        return self.emit 'error',"Failed login: #{err}"
-      self.loggedin = true
-      self.emit 'ami:login'
-
   @socket.on 'error',@_onError.bind(this)
 
   @socket.on 'end',@_onEnd.bind(this)
@@ -67,11 +60,11 @@ util.inherits Connection,EventEmitter
 
 Connection.prototype.send = (command)->
   if typeof command isnt 'string'
-    command = Parser.toAMI command
+    command = @parser.toAMI command
   try
-    @socket.write command + "\r\n\r\n"
+    @socket.write command
   catch err
-    @emit 'error',err
+    @_onError "Failed to send: #{err}"
   return
 
 ###
@@ -191,6 +184,7 @@ Connection.prototype.getVar = Connection.prototype.GetVar = (channel,key,cb)->
 
 Connection.prototype._onConnect = ->
   self = this
+  @log.trace "Connected to Asterisk AMI"
   @parser = new Parser @socket
   @parser.on 'ami:message',@_onMessage.bind(this)
   @parser.on 'ami:response',@_onResponse.bind(this)
@@ -203,6 +197,15 @@ Connection.prototype._onConnect = ->
   @parser.on 'ami:originate',@_onOriginate.bind(this)
   @parser.on 'error',@_onError.bind(this)
   @emit 'connect'
+  # Log in
+  self.log.trace "Socket ready"
+  self.login (err)->
+    self.log.trace "Received login response"
+    if err?
+      self.log.error "Failed login"
+      return self.emit 'ami:login:failed'
+    self.loggedin = true
+    self.emit 'ami:login'
 
 Connection.prototype._onEnd = ->
   @log.info "Connection ended"
@@ -210,13 +213,14 @@ Connection.prototype._onEnd = ->
 
 Connection.prototype._onError = (message)->
   @log.error message
-  return @emit 'error',message
+  return
 
 Connection.prototype._onMessage = (message)->
   # Reemit to self
   @emit 'message',message
 
 Connection.prototype._onResponse = (message)->
+  @log.trace "Response received:",message
   if not message.ActionID
     return
   @emit "response:#{message.ActionID}",message
@@ -232,7 +236,9 @@ Connection.prototype._onResponse = (message)->
   cb = @actionQueue[message.ActionID]
   delete @actionQueue[message.ActionID]
   if typeof cb is 'function'
-    cb message
+    if message.Response isnt 'Success'
+      return cb? message.Message,message
+    return cb? null,message
   return
 
 Connection.prototype._onEvent = (message)->
@@ -249,7 +255,7 @@ Connection.prototype._onAgiExec = (message)->
   cb = @agiQueue[message.CommandID]
   delete @agiQueue[message.CommandID]
   if typeof cb is 'function'
-    cb message
+    cb null,message
   return
 
 Connection.prototype._onOriginate = (message)->
@@ -259,7 +265,7 @@ Connection.prototype._onOriginate = (message)->
   cb = @originateQueue[message.ActionID]
   delete @originateQueue[message.ActionID]
   if typeof cb is 'function'
-    cb message
+    cb null,message
   return
 
 module.exports =

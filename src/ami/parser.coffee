@@ -1,3 +1,4 @@
+_ = require('underscore')._
 events = require 'events'
 util = require 'util'
 
@@ -161,7 +162,9 @@ Parser.prototype.parse = Parser.prototype.toObj = (lines)->
 Parser.prototype.toAMI = (obj)->
   self = this
   lines = []
-  obj.forEach (val,key)->
+  _.each obj,(val,key)->
+    if not val
+      val = ''
     if typeof val is 'string'
       return lines.push [key,val].join ': '
     # Convert arrays to multiple lines
@@ -173,7 +176,7 @@ Parser.prototype.toAMI = (obj)->
       self.emit 'error',"Unhandled type in toAMI:"+ typeof val
       return
     return
-  return lines.join(@separator).concat @separator
+  return lines.join(@separator).concat @separator,@separator
 
 Parser.prototype.parseEnv = (env)->
   # Environment variable string is
