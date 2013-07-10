@@ -145,18 +145,21 @@ Connection.prototype.agi = Connection.prototype.AGI = (command,args,cb)->
 # a callback on completion of the Originate action.
 ###
 Connection.prototype.originate = Connection.prototype.Originate = (args,cb)->
-  if typeof args is 'function'
-    cb = args
-    args = null
   opts = _.extend {
     Action: 'Originate'
     ActionID: uuid.v1()
     Async: 'true'
     sync: false
   },args
-  if (opts.sync?) and (cb?)
-    @originateQueue[opts.ActionID] =
-      complete: cb
+  if opts.Variable
+    if typeof opts.Variable is 'object'
+      # Convert variable object to array
+      vars = []
+      _.each opts.Variable,(val,key)->
+        vars.push key+"="+val
+      opts.Variable = vars
+  if (opts.sync) and (cb?)
+    @originateQueue[opts.ActionID] = cb
   else if (opts.complete?) or (cb?)
     if cb?
       @actionQueue[opts.ActionID] = cb
@@ -177,22 +180,27 @@ Connection.prototype.getVar = Connection.prototype.GetVar = (channel,key,cb)->
     Action: 'GetVar'
     Channel: channel
     Variable: key
-  @action req,(mesg)->
-    if mesg.Response isnt 'Success'
+  @action req,(err,mesg)->
+    if mesg?.Response isnt 'Success'
       return cb? "Failed to get variable",mesg
     return cb? null,mesg.Value
 
 Connection.prototype._onConnect = ->
   self = this
   @log.trace "Connected to Asterisk AMI"
-  @parser = new Parser @socket
+  @parser = new Parser {
+    socket: @socket
+    logger: @log
+  }
   @parser.on 'ami:message',@_onMessage.bind(this)
   @parser.on 'ami:response',@_onResponse.bind(this)
   @parser.on 'ami:event',@_onEvent.bind(this)
   @parser.on 'ami:agi:exec',@_onAgiExec.bind(this)
   @parser.on 'ami:agi:session:start',(message)->
+    self.log.trace "Got AsyncAGI Session Start",message
     return self.emit 'agi:start',message
   @parser.on 'ami:agi:session:end',(message)->
+    self.log.trace "Got AsyncAGI Session End",message
     return self.emit 'agi:end',message
   @parser.on 'ami:originate',@_onOriginate.bind(this)
   @parser.on 'error',@_onError.bind(this)
@@ -265,7 +273,9 @@ Connection.prototype._onOriginate = (message)->
   cb = @originateQueue[message.ActionID]
   delete @originateQueue[message.ActionID]
   if typeof cb is 'function'
-    cb null,message
+    if message.Response isnt 'Success'
+      return cb "Origination Failed: #{message.Reason}",message
+    return cb null,message
   return
 
 module.exports =

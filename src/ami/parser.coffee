@@ -1,14 +1,22 @@
 _ = require('underscore')._
 events = require 'events'
 util = require 'util'
+Logger = require './logger'
 
-Parser = (socket)->
+Parser = (options)->
   events.EventEmitter.call this
 
-  if not socket
+  # Bind our logger
+  if not options.logger
+    options.logger = Logger.createLogger @options.debug
+  @log = options.logger
+    
+  # Bind our socket
+  if not options.socket
     return @emit 'error','No socket passed to Parser'
-  @socket = socket
+  @socket = options.socket
   @socket.setEncoding 'ascii'
+
   @buffer = ''
   @lines = []
   @initialized = false
@@ -35,8 +43,6 @@ Parser.prototype._onEnd = ->
 
 Parser.prototype._onData = (data)->
   self = this
-  # Add the data to our buffer
-  @buffer += data
 
   lines = data.split @separator
 
@@ -79,6 +85,7 @@ Parser.prototype._onMessage = (lines)->
     return
   # Parse the message
   message = @parse lines
+  @log.trace "Got message from AMI:",message
   # If the message is an empty object,
   # silently do nothing
   if not Object.keys(message).length
@@ -108,6 +115,7 @@ Parser.prototype._onMessage = (lines)->
         @emit 'ami:agi:exec',message
     if message.Event is 'OriginateResponse'
       # Message was a response to an Originate call
+      @log.trace "Got OriginateResponse"
       @emit 'ami:originate',message
   return
 
@@ -146,6 +154,7 @@ Parser.prototype.parse = Parser.prototype.toObj = (lines)->
       # Ignore lines which have no key-value pairs
       return
     key = tmp.shift()
+    # Rejoin any subsequence pieces
     val = tmp.join ':'
     
     # If the key already exists in the msg,
@@ -167,13 +176,15 @@ Parser.prototype.toAMI = (obj)->
       val = ''
     if typeof val is 'string'
       return lines.push [key,val].join ': '
+    if typeof val is 'number'
+      return lines.push [key,val.toString()].join ': '
     # Convert arrays to multiple lines
     # with the same key
-    else if typeof val is 'array'
+    else if _.isArray val
       val.forEach (item)->
         return lines.push [key,item].join ': '
     else
-      self.emit 'error',"Unhandled type in toAMI:"+ typeof val
+      log.debug "Unhandled type in toAMI:",val
       return
     return
   return lines.join(@separator).concat @separator,@separator
@@ -188,6 +199,10 @@ Parser.prototype.parseEnv = (env)->
   lines = env.split '%0A'
   _.each lines,(line)->
     pieces = line.split '%3A%20'
+    if not pieces[0]
+      return
+    if not pieces[1]
+      pieces[1] = ''
     ret[pieces[0]] = pieces[1]
   return ret
 
