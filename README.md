@@ -61,6 +61,7 @@ Available `options`:
 * password:  Asterisk AMI secret
 * debug: (boolean) Increase logging level (default: false)
 * events: (boolean) Listen for AMI events (default: true)
+* reconnectTimeout: Timeout (ms) to reconnect; 0 to disable (default: 5000)
 
 If provided, the callback will be called when Asterisk reports the connection to be ready
 

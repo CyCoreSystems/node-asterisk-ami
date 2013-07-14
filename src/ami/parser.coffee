@@ -38,7 +38,15 @@ Parser.prototype.flush = ->
   @buffer = ''
   @lines = []
 
+Parser.prototype.end = ->
+  if @socket
+    @socket.removeAllListeners()
+  @removeAllListeners()
+  @emit 'end'
+  return
+
 Parser.prototype._onEnd = ->
+  log.info "AMI:end"
   return
 
 Parser.prototype._onData = (data)->

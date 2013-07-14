@@ -16,6 +16,7 @@ Connection = (options,cb)->
     password: ''
     debug: false
     events: true
+    reconnectTimeout: 5000
   },options
 
   # If the passed a callback, bind it to ready_cb
@@ -45,18 +46,50 @@ Connection = (options,cb)->
   @agiQueue = []
   @originateQueue = []
 
-  @socket = net.connect {
-    port: @options.port
-    host: @options.host
-  },@_onConnect.bind(this)
+  # Connect
+  @connect()
 
-  @socket.on 'error',@_onError.bind(this)
-
-  @socket.on 'end',@_onEnd.bind(this)
-
+  _.bindAll this
   return
 
 util.inherits Connection,EventEmitter
+
+Connection.prototype.connect = (port,host,cb)->
+  self = this
+  if @socket
+    @socket.removeAllListeners()
+    @socket = null
+  if @parser
+    @parser.end()
+    @parser = null
+  connport = @options.port
+  connhost = @options.host
+  if port
+    if (typeof port isnt 'function')
+      if typeof port is 'object'
+        if port.port
+          connport = port.port
+        if port.host
+          connhost = port.host
+      else
+        connport = port
+    else
+      cb = port
+    if host
+      if typeof host isnt 'function'
+        connhost = host
+      else
+        cb = host
+      
+  @socket = net.connect {
+    port: connport
+    host: connhost
+  },(err)->
+    self._onConnect()
+    return cb? err
+  @socket.on 'error',@_onError.bind(this)
+  @socket.on 'close',@_onClose.bind(this)
+  return
 
 Connection.prototype.send = (command)->
   if typeof command isnt 'string'
@@ -215,8 +248,12 @@ Connection.prototype._onConnect = ->
     self.loggedin = true
     self.emit 'ami:login'
 
-Connection.prototype._onEnd = ->
-  @log.info "Connection ended"
+Connection.prototype._onClose = ->
+  if @options.reconnectTimeout
+    @log.info "Connection ended; reconnecting in",@options.reconnectTimeout,"ms"
+    return setTimeout @connect,@options.reconnectTimeout
+  else
+    @log.info "Connection ended"
   return @emit 'end'
 
 Connection.prototype._onError = (message)->
