@@ -193,11 +193,13 @@ Connection.prototype.originate = Connection.prototype.Originate = (args,cb)->
       opts.Variable = vars
   if (opts.sync) and (cb?)
     @originateQueue[opts.ActionID] = cb
+    delete opts.sync
   else if (opts.complete?) or (cb?)
     if cb?
       @actionQueue[opts.ActionID] = cb
     if opts.complete?
       @originateQueue[opts.ActionID] = opts.complete
+      delete opts.complete
   @send opts
   return
 
@@ -217,6 +219,17 @@ Connection.prototype.getVar = Connection.prototype.GetVar = (channel,key,cb)->
     if mesg?.Response isnt 'Success'
       return cb? "Failed to get variable",mesg
     return cb? null,mesg.Value
+
+Connection.prototype.setVar = Connection.prototype.SetVar = (channel,key,val,cb)->
+  req =
+    Action: 'SetVar'
+    Channel: channel
+    Variable: key
+    Value: val
+  @action req,(err,mesg)->
+    if mesg?.Response isnt 'Success'
+      return cb? "Failed to set variable",mesg
+    return cb? null
 
 Connection.prototype._onConnect = ->
   self = this
