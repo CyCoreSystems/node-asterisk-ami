@@ -16,6 +16,7 @@ Parser = (options)->
     return @emit 'error','No socket passed to Parser'
   @socket = options.socket
   @socket.setEncoding 'ascii'
+  @socket.setKeepAlive true,500
 
   @buffer = ''
   @lines = []
